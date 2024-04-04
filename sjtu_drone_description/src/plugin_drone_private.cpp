@@ -137,19 +137,19 @@ void DroneSimpleControllerPrivate::InitPublishers(
   std::string odom_topic_)
 {
   if (!gt_topic_.empty()) {
-    pub_gt_pose_ = ros_node_->create_publisher<geometry_msgs::msg::Pose>(gt_topic_, 1024);
+    pub_gt_pose_ = ros_node_->create_publisher<geometry_msgs::msg::PoseStamped>(gt_topic_, 1024);
   } else {
     RCLCPP_ERROR(ros_node_->get_logger(), "No ground truth topic defined!");
   }
 
   if (!gt_vel_topic_.empty()) {
-    pub_gt_vec_ = ros_node_->create_publisher<geometry_msgs::msg::Twist>("gt_vel", 1024);
+    pub_gt_vec_ = ros_node_->create_publisher<geometry_msgs::msg::TwistStamped>("gt_vel", 1024);
   } else {
     RCLCPP_ERROR(ros_node_->get_logger(), "No ground truth velocity topic defined!");
   }
 
   if (!gt_acc_topic_.empty()) {
-    pub_gt_acc_ = ros_node_->create_publisher<geometry_msgs::msg::Twist>("gt_acc", 1024);
+    pub_gt_acc_ = ros_node_->create_publisher<geometry_msgs::msg::TwistStamped>("gt_acc", 1024);
   } else {
     RCLCPP_ERROR(ros_node_->get_logger(), "No ground truth acceleration topic defined!");
   }
@@ -438,33 +438,37 @@ void DroneSimpleControllerPrivate::UpdateDynamics(double dt)
   velocity = link->WorldLinearVel();
 
   //publish the ground truth pose of the drone to the ROS topic
-  geometry_msgs::msg::Pose gt_pose;
-  gt_pose.position.x = pose.Pos().X();
-  gt_pose.position.y = pose.Pos().Y();
-  gt_pose.position.z = pose.Pos().Z();
+  geometry_msgs::msg::PoseStamped gt_pose_stamped;
+  gt_pose_stamped.header.stamp = gazebo_ros::Convert<builtin_interfaces::msg::Time>(current_time);
+  gt_pose_stamped.header.frame_id = "world";
 
-  gt_pose.orientation.w = pose.Rot().W();
-  gt_pose.orientation.x = pose.Rot().X();
-  gt_pose.orientation.y = pose.Rot().Y();
-  gt_pose.orientation.z = pose.Rot().Z();
-  pub_gt_pose_->publish(gt_pose);
+  gt_pose_stamped.pose.position.x = pose.Pos().X();
+  gt_pose_stamped.pose.position.y = pose.Pos().Y();
+  gt_pose_stamped.pose.position.z = pose.Pos().Z();
+
+  gt_pose_stamped.pose.orientation.w = pose.Rot().W();
+  gt_pose_stamped.pose.orientation.x = pose.Rot().X();
+  gt_pose_stamped.pose.orientation.y = pose.Rot().Y();
+  gt_pose_stamped.pose.orientation.z = pose.Rot().Z();
+  pub_gt_pose_->publish(gt_pose_stamped);
 
   //convert the acceleration and velocity into the body frame
   ignition::math::v6::Vector3<double> body_vel = pose.Rot().RotateVector(velocity);
   ignition::math::v6::Vector3<double> body_acc = pose.Rot().RotateVector(acceleration);
 
   //publish the velocity
-  geometry_msgs::msg::Twist tw;
-  tw.linear.x = body_vel.X();
-  tw.linear.y = body_vel.Y();
-  tw.linear.z = body_vel.Z();
-  pub_gt_vec_->publish(tw);
+  geometry_msgs::msg::TwistStamped tw_stamped;
+  tw_stamped.header.stamp = gazebo_ros::Convert<builtin_interfaces::msg::Time>(current_time);
+  tw_stamped.twist.linear.x = body_vel.X();
+  tw_stamped.twist.linear.y = body_vel.Y();
+  tw_stamped.twist.linear.z = body_vel.Z();
+  pub_gt_vec_->publish(tw_stamped);
 
   //publish the acceleration
-  tw.linear.x = body_acc.X();
-  tw.linear.y = body_acc.Y();
-  tw.linear.z = body_acc.Z();
-  pub_gt_acc_->publish(tw);
+  tw_stamped.twist.linear.x = body_acc.X();
+  tw_stamped.twist.linear.y = body_acc.Y();
+  tw_stamped.twist.linear.z = body_acc.Z();
+  pub_gt_acc_->publish(tw_stamped);
 
 
   ignition::math::v6::Vector3<double> poschange = pose.Pos() - position;

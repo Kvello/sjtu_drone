@@ -25,9 +25,11 @@
 #include <rclcpp/callback_group.hpp>
 
 #include <geometry_msgs/msg/point.hpp>
-#include <geometry_msgs/msg/twist.hpp>
+#include <geometry_msgs/msg/twist_stamped.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
+#include <geometry_msgs/msg/transform.hpp>
 #include <sensor_msgs/msg/imu.hpp>
 #include <std_msgs/msg/empty.hpp>
 #include <std_msgs/msg/bool.hpp>
@@ -148,9 +150,9 @@ private:
   rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr switch_mode_subscriber_{nullptr};
 
   // Publishers
-  rclcpp::Publisher<geometry_msgs::msg::Pose>::SharedPtr pub_gt_pose_{nullptr}; //for publishing ground truth pose
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_vec_{nullptr}; //ground truth velocity in the body frame
-  rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr pub_gt_acc_{nullptr}; //ground truth acceleration in the body frame
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_gt_pose_{nullptr}; //for publishing ground truth pose
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub_gt_vec_{nullptr}; //ground truth velocity in the body frame
+  rclcpp::Publisher<geometry_msgs::msg::TwistStamped>::SharedPtr pub_gt_acc_{nullptr}; //ground truth acceleration in the body frame
   rclcpp::Publisher<std_msgs::msg::String>::SharedPtr pub_cmd_mode{nullptr}; //for publishing command mode
   rclcpp::Publisher<std_msgs::msg::Int8>::SharedPtr pub_state{nullptr}; //for publishing current STATE (Landed, Flying, Takingoff, Landing)
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odom_{nullptr}; //for publishing odometry
